@@ -84,4 +84,3 @@ async function captureAllCharts() {
 
   console.log("📅 Scheduled Capture Started...");
   captureAllCharts();
-
