@@ -1,0 +1,24 @@
+name: Run Scheduler Every 30 Mins
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # Har 30 min pe chalega
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # Node.js version
+
+      - name: Install Dependencies
+        run: npm install  # Agar package.json hai to dependencies install karega
+
+      - name: Run Script
+        run: node index.js  # Tumhara scheduler yaha chalega
