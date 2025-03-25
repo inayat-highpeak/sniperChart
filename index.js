@@ -82,8 +82,6 @@ async function captureAllCharts() {
   }
 }
 
-// Schedule every 30 mins (or change as needed)
-cron.schedule("*/30 * * * *", () => {
   console.log("📅 Scheduled Capture Started...");
   captureAllCharts();
-});
+
