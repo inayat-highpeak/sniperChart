@@ -21,7 +21,7 @@ async function captureChart(symbol, name) {
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
-    args: ["--start-maximized"]
+    args: ["--start-maximized", "--no-sandbox", "--disable-setuid-sandbox"] // ✅ Fix added
   });
 
   const page = await browser.newPage();
@@ -82,5 +82,5 @@ async function captureAllCharts() {
   }
 }
 
-  console.log("📅 Scheduled Capture Started...");
-  captureAllCharts();
+console.log("📅 Scheduled Capture Started...");
+captureAllCharts();

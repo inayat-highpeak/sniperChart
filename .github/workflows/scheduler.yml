@@ -2,8 +2,8 @@ name: Run Scheduler Every 30 Mins
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Har 30 min pe chalega
-  workflow_dispatch:  # Manual run ke liye enable
+    - cron: "*/30 * * * *"
+  workflow_dispatch:  # Manual trigger ke liye
 
 jobs:
   run-script:
@@ -16,17 +16,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Tumhare project ka Node.js version
+          node-version: 18
 
       - name: Install Dependencies
-        run: npm install  # Package install karega
+        run: npm install
 
       - name: Install Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Install Puppeteer Chrome Binary
+      - name: Install Puppeteer Browser
         run: npx puppeteer browsers install chrome  # Puppeteer ka Chrome install karega
 
       - name: Run Script
