@@ -1,7 +1,10 @@
 const TelegramBot = require("node-telegram-bot-api");
 const puppeteer = require("puppeteer");
-const cron = require("node-cron");
+const express = require("express");
 const fs = require("fs");
+
+const app = express();
+const PORT = process.env.PORT || 8080;
 
 const TELEGRAM_TOKEN = "7054904554:AAGuN9Hlp-aIZLxwDXPX0bkTRi4zP44qM9I";
 const bot = new TelegramBot(TELEGRAM_TOKEN);
@@ -14,14 +17,12 @@ const coins = [
   { symbol: "BINANCE:ETHUSDT.P", name: "ETH" }
 ];
 
-// Custom wait function (replaces waitForTimeout)
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function captureChart(symbol, name) {
   const browser = await puppeteer.launch({
-    headless: false,
-    defaultViewport: null,
-    args: ["--start-maximized", "--no-sandbox", "--disable-setuid-sandbox"] // ✅ Fix added
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
   const page = await browser.newPage();
@@ -29,47 +30,15 @@ async function captureChart(symbol, name) {
     waitUntil: "networkidle2"
   });
 
-  await wait(5000); // wait for chart load
-
-  // Close right-side panel
-  await page.waitForSelector('button[aria-label="Watchlist, details and news"]', { timeout: 10000 });
-  await page.click('button[aria-label="Watchlist, details and news"]');
-  console.log("✅ Right panel closed.");
-
-  await page.keyboard.type("30");
-  await page.keyboard.press("Enter");
-  // Zoom in chart
-  try {
-    const chartArea = await page.$(".chart-container");
-    for (let i = 0; i < 7; i++) {
-      await chartArea.hover();
-      await page.mouse.wheel({ deltaY: -300 });
-      await wait(500);
-    }
-  } catch (e) {
-    console.log("❗ Zoom failed:", e.message);
-  }
-
-  await wait(2000); // settle before screenshot
-
+  await wait(5000);
   const fileName = `${name}_chart.png`;
-  const chartElement = await page.$(".chart-container");
-  if (chartElement) {
-    await chartElement.screenshot({ path: fileName });
-  } else {
-    await page.screenshot({ path: fileName });
-  }
-
+  await page.screenshot({ path: fileName });
   await browser.close();
 
-  // Send to Telegram
-  await bot.sendPhoto(CHAT_ID, fileName, {
-    caption: `📊 ${name} 30m Chart (Zoomed)`
-  });
+  await bot.sendPhoto(CHAT_ID, fileName, { caption: `📊 ${name} Chart` });
   console.log(`✅ Sent chart for ${name}`);
 
   fs.unlinkSync(fileName);
-  await browser.close();
 }
 
 async function captureAllCharts() {
@@ -82,5 +51,17 @@ async function captureAllCharts() {
   }
 }
 
-console.log("📅 Scheduled Capture Started...");
-captureAllCharts();
+// **👨‍💻 HTTP Endpoint for Cloud Run**
+app.get("/", (req, res) => {
+  res.send("✅ Sniper Chart Service Running...");
+});
+
+app.get("/capture", async (req, res) => {
+  await captureAllCharts();
+  res.send("📊 Charts Captured & Sent to Telegram");
+});
+
+// **🚀 Start Express Server**
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
